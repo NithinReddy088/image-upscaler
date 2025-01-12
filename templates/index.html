@@ -1,0 +1,77 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Image Upscaler</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow">
+        <h1 class="text-2xl font-bold mb-6">Image Upscaler</h1>
+        
+        <form id="upscaleForm" class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium mb-1">Image URL</label>
+                <input type="url" name="image_url" required
+                       class="w-full p-2 border rounded">
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium mb-1">Scale Factor</label>
+                <input type="number" name="scale_factor" min="1" max="4" step="0.5" value="2"
+                       class="w-full p-2 border rounded">
+            </div>
+            
+            <button type="submit" 
+                    class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">
+                Upscale Image
+            </button>
+        </form>
+        
+        <div id="result" class="mt-6 hidden">
+            <h2 class="text-lg font-semibold mb-2">Result</h2>
+            <img id="resultImage" class="max-w-full mb-4">
+            <a id="downloadLink" 
+               class="inline-block bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                Download Upscaled Image
+            </a>
+        </div>
+        
+        <div id="error" class="mt-6 hidden text-red-500"></div>
+    </div>
+
+    <script>
+        document.getElementById('upscaleForm').onsubmit = async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const resultDiv = document.getElementById('result');
+            const errorDiv = document.getElementById('error');
+            
+            try {
+                const response = await fetch('/upscale', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('resultImage').src = data.image_path;
+                    document.getElementById('downloadLink').href = data.image_path;
+                    resultDiv.classList.remove('hidden');
+                    errorDiv.classList.add('hidden');
+                } else {
+                    errorDiv.textContent = data.error;
+                    errorDiv.classList.remove('hidden');
+                    resultDiv.classList.add('hidden');
+                }
+            } catch (error) {
+                errorDiv.textContent = "An error occurred";
+                errorDiv.classList.remove('hidden');
+                resultDiv.classList.add('hidden');
+            }
+        };
+    </script>
+</body>
+</html>
